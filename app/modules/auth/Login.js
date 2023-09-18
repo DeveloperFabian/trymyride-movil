@@ -5,6 +5,7 @@ import { View, Text, Image, ScrollView } from 'react-native'
 import { responsiveScreenWidth } from 'react-native-responsive-dimensions'
 import { Center, Box, Heading, VStack, FormControl, Input, Link, Button, HStack, StatusBar, AlertDialog } from 'native-base'
 import { Iconify } from 'react-native-iconify';
+import Config from '../../components/api/Config';
 
 export default function Login({ navigation }) {
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function Login({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://192.168.10.13:8000/api/login', {
+      const response = await axios.post(`${Config.apiUrl}/api/login`, {
         email: email,
         password: password,
       });

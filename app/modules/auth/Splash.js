@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import LottieView from 'lottie-react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Config from '../../components/api/Config';
 
 export default function Splash({ navigation }) {
   const [animationFinished, setAnimationFinished] = useState(false);

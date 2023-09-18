@@ -5,6 +5,7 @@ import { View, Text, Image, ScrollView, StyleSheet } from 'react-native'
 import { responsiveScreenWidth } from 'react-native-responsive-dimensions'
 import { Box, FormControl, Input, Button, AlertDialog } from 'native-base'
 import { Iconify } from 'react-native-iconify';
+import Config from '../../components/api/Config';
 
 export default function Index({ navigation }) {
   const [alert, setAlert] = useState(false)
@@ -22,7 +23,7 @@ export default function Index({ navigation }) {
     try {
       const token = await AsyncStorage.getItem('authToken');
       const response = await axios.post(
-        'http://192.168.10.13:8000/api/update',
+        `${Config.apiUrl}/api/update`,
         formData,
         {
           headers: {
@@ -56,7 +57,7 @@ export default function Index({ navigation }) {
         if (token) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-          const response = await axios.get('http://192.168.10.13:8000/api/account');
+          const response = await axios.get(`${Config.apiUrl}/api/account`);
           console.log(response.data.user)
           if (response.status === 200) {
             setFormData({
@@ -77,7 +78,7 @@ export default function Index({ navigation }) {
   const handleLogout = async () => {
     try {
       const token = await AsyncStorage.getItem('authToken');
-      await axios.post('http://192.168.10.117:8000/api/logout', null, {
+      await axios.post(`${Config.apiUrl}/api/logout`, null, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

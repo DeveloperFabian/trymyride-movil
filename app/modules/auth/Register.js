@@ -4,6 +4,7 @@ import { View, Text, Image, ScrollView, StyleSheet } from 'react-native'
 import { responsiveScreenWidth } from 'react-native-responsive-dimensions'
 import { Box, FormControl, Input, StatusBar, Button, AlertDialog } from 'native-base'
 import { Iconify } from 'react-native-iconify';
+import Config from '../../components/api/Config';
 
 export default function Register({ navigation }) {
 
