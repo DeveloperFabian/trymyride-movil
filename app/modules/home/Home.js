@@ -1,34 +1,77 @@
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { View, Text, Image } from 'react-native'
-import { AlertDialog, Center, VStack, Skeleton, Button } from 'native-base'
-import { CommonActions } from '@react-navigation/native';
+import { View, Text, Image, ScrollView, StyleSheet } from 'react-native'
+import { responsiveScreenWidth } from 'react-native-responsive-dimensions'
+import { Box, FormControl, Input, Button, AlertDialog } from 'native-base'
+import { Iconify } from 'react-native-iconify';
 
 export default function Index({ navigation }) {
+  const [alert, setAlert] = useState(false)
+  const [message, setMessage] = useState('')
+  const onClose = () => setAlert(false);
+  const cancelRef = React.useRef(null);
   const [isLoading, setIsLoading] = useState(false)
-  const [isDeveloper, setIsDeveloper] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+
+  const updateProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await axios.post(
+        'http://192.168.10.13:8000/api/update',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setMessage(response.data.message)
+        setAlert(true)
+      } else {
+        console.error('Error al actualizar los datos del usuario');
+      }
+    } catch (error) {
+      console.error('Error al actualizar el perfil:', error);
+    }
+  };
 
   useEffect(() => {
     navigation.addListener("beforeRemove", (e) => {
       e.preventDefault();
     });
   }, []);
+
   useEffect(() => {
-    const getToken = async () => {
+    const loadUserData = async () => {
       try {
         const token = await AsyncStorage.getItem('authToken');
         if (token) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          setIsDeveloper(true);
-        }
 
+          const response = await axios.get('http://192.168.10.13:8000/api/account');
+          console.log(response.data.user)
+          if (response.status === 200) {
+            setFormData({
+              name: response.data.user.name,
+              email: response.data.user.email,
+              password: '',
+            });
+          }
+        }
       } catch (error) {
-        console.error('Error al obtener el token:', error);
+        console.error('Error al cargar los datos del usuario:', error);
+        navigation.navigate('Login')
       }
     };
-
-    getToken();
+    loadUserData();
   }, []);
 
   const handleLogout = async () => {
@@ -47,47 +90,68 @@ export default function Index({ navigation }) {
     }
   };
 
-
   return (
     <View style={{ flex: 1, justifyContent: 'center' }}>
-      <Center w="100%" >
-        <VStack w="90%" my="4" maxW="400" borderWidth="1" space={8} overflow="hidden" rounded="md" _dark={{
-          borderColor: "coolGray.500"
-        }} _light={{
-          borderColor: "coolGray.200"
-        }}>
-          <Skeleton h="40" />
-          <Skeleton.Text px="4" />
-          <Skeleton px="4" my="4" rounded="md" startColor="primary.100" />
-        </VStack>
-        <VStack w="90%" maxW="400" borderWidth="1" space={8} overflow="hidden" rounded="md" _dark={{
-          borderColor: "coolGray.500"
-        }} _light={{
-          borderColor: "coolGray.200"
-        }}>
-          <Skeleton h="40" />
-          <Skeleton.Text px="4" />
-          <Skeleton px="4" my="4" rounded="md" startColor="primary.100" />
-        </VStack>
-      </Center>
-      <AlertDialog isOpen={isDeveloper}>
+      <ScrollView>
+        <View style={{ width: responsiveScreenWidth(100) }}>
+          <Box alignSelf="center" borderRadius={10} style={{ width: responsiveScreenWidth(90), marginVertical: 50, padding: 20, backgroundColor: '#fff', elevation: 6 }}>
+            <View style={styles.inputRow}>
+              <Image source={{ uri: 'https://i.ibb.co/cNqCZcj/tmr-logo-1.png' }} style={{ width: '75%', height: 80 }} />
+            </View>
+            <View style={styles.inputRow}>
+              <FormControl>
+                <FormControl.Label>Nombre y apellido <Text style={{ color: 'red' }}>*</Text></FormControl.Label>
+                <Input value={formData.name} onChangeText={text => setFormData({ ...formData, name: text })} />
+              </FormControl>
+            </View>
+            <View style={styles.inputRow}>
+              <FormControl>
+                <FormControl.Label>Correo electrónico <Text style={{ color: 'red' }}>*</Text></FormControl.Label>
+                <Input value={formData.email} onChangeText={text => setFormData({ ...formData, email: text })} />
+              </FormControl>
+            </View>
+            <View style={styles.inputRow}>
+              <FormControl>
+                <FormControl.Label>Contraseña <Text style={{ color: 'red' }}>*</Text></FormControl.Label>
+                <Input secureTextEntry onChangeText={text => setFormData({ ...formData, password: text })} />
+              </FormControl>
+            </View>
+            <View style={[styles.inputRow, { justifyContent: 'flex-end' }]}>
+              <Button style={{ backgroundColor: '#47a61d', marginRight: 10 }} onPress={updateProfile} disabled={isLoading}>
+                Editar perfil
+              </Button>
+              <Button style={{ backgroundColor: 'red' }} onPress={handleLogout} disabled={isLoading}>
+                Cerrar sesión
+              </Button>
+            </View>
+          </Box>
+        </View>
+      </ScrollView>
+      <AlertDialog leastDestructiveRef={cancelRef} isOpen={alert} onClose={onClose}>
         <AlertDialog.Content>
+          <AlertDialog.CloseButton />
           <AlertDialog.Body>
-            <Image source={{ uri: 'https://reemplacamiento.yucatan.gob.mx/img/mantenimiento.gif' }} style={{ width: '50%', height: 150 }} alignSelf="center" />
-            <Text style={{ fontSize: 20, fontWeight: '700', textAlign: 'center', marginTop: 30, marginBottom: 10 }}>Lo sentimos</Text>
-            <Text style={{ fontSize: 16, fontWeight: '700', textAlign: 'center' }}>La aplicacion se encuentra en desarrollo, vuelve a intentarlo mas tarde</Text>
-            <Button style={{ marginVertical: 20 }} onPress={handleLogout}>Cerrar sesión</Button>
-          </AlertDialog.Body>
-        </AlertDialog.Content>
-      </AlertDialog>
-      <AlertDialog isOpen={isLoading}>
-        <AlertDialog.Content>
-          <AlertDialog.Body>
-            <Image source={{ uri: 'https://www.ewfm.co.uk/wp-content/uploads/2022/05/one_loader.gif' }} style={{ width: '50%', height: 100 }} alignSelf="center" />
-            <Text style={{ fontSize: 16, fontWeight: '700', textAlign: 'center', marginVertical: 30 }}>Cerrando sesion... por favor espera</Text>
+            <View>
+              <Iconify icon="emojione-v1:left-check-mark" size={100} color="#900" alignSelf="center" style={{ marginVertical: 20 }} />
+              <Text style={{ marginVertical: 20, textAlign: 'center', fontSize: 20, fontWeight: '700' }}>{message}</Text>
+            </View>
           </AlertDialog.Body>
         </AlertDialog.Content>
       </AlertDialog>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  cardPicker: {
+    borderWidth: 1,
+    borderColor: '#C5C5C5',
+    borderRadius: 5
+  },
+  inputRow: {
+    flexDirection: "row",
+    width: '100%',
+    justifyContent: 'center',
+    marginBottom: 10
+  }
+})

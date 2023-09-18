@@ -8,7 +8,6 @@ import Splash from '../../modules/auth/Splash'
 import Login from '../../modules/auth/Login'
 import Register from '../../modules/auth/Register'
 import Home from '../../modules/home/Home'
-import Profile from '../../modules/profile/Profile'
 
 const Stack = createStackNavigator();
 
@@ -40,7 +39,6 @@ function MyStack() {
                     }}
                 >
                     <Stack.Screen name="Home" component={Home} />
-                    <Stack.Screen name="Profile" component={Profile} />
                 </Stack.Group>
             </Stack.Group>
         </Stack.Navigator>
